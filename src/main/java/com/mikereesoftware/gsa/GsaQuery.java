@@ -2,15 +2,16 @@ package com.mikereesoftware.gsa;
 
 import com.mikereesoftware.gsa.params.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by mike on 8/26/15.
  */
-public class Query {
+public class GsaQuery {
     private String query = null;
     private String site = "default_collection"; // TODO: This should be implemented better
-    private String frontend = "default_frontend";
+    private String frontend = null;
     private String client = "default_frontend";
 
     private List<FileTypeFilter> fileTypeFilters = null;
@@ -35,16 +36,16 @@ public class Query {
     private boolean exclude_apps = true;
     private boolean only_apps = false;
 
-    private Access access = Access.ALL;
+    private Access access = Access.PUBLIC_ONLY;
     private QueryWithinPage as_occt = QueryWithinPage.ANY_PART_OF_PAGE;
     private QueryExpansionPolicy entqr = QueryExpansionPolicy.NONE;
     private MetaQueryExpansionPolicy entqrm = MetaQueryExpansionPolicy.NONE;
     private ResultBiasingPolicy entsp_enum = ResultBiasingPolicy.FRONTEND_DEFAULT;
     private String entsp = null; // Used if ResultBiasingSettings is set to custom
     private ResultFiltering filter = ResultFiltering.SNIPPET_AND_DIRECTORY_FILTERING;
-    private List<String> getfields = null; // List of all the fields to get
+    private String[] getfields = null; // List of all the fields to get
     private String gsaRequestID = null;
-    private String ie = CharacterEncodings.ENGLISH;
+    private String ie = CharacterEncodings.UNICODE;
     private String oe = CharacterEncodings.UNICODE;
     private int num = 10;
     private int start = 0;
@@ -69,7 +70,7 @@ public class Query {
     ud - will want to support this with logic around its being set to ensure it's used correctly.
      */
 
-    public Query setQuery(String query) {
+    public GsaQuery setQuery(String query) {
         this.query = query;
         return this;
     }
@@ -78,12 +79,12 @@ public class Query {
         return frontend;
     }
 
-    public Query setFrontend(String frontend) {
+    public GsaQuery setFrontend(String frontend) {
         this.frontend = frontend;
         return this;
     }
 
-    public Query setSiteSearch(String siteSearch) {
+    public GsaQuery setSiteSearch(String siteSearch) {
         if (siteSearch.isEmpty()) return this;
         if (siteSearch.length() >= 125)
             throw new IllegalArgumentException("Site Search parameter can not exceed 125 characters.");
@@ -96,81 +97,159 @@ public class Query {
      * Not required for custom, use setCustomResultBiasing(String) instead.
      * @return this
      */
-    public Query setRestulBiasingPolicy(ResultBiasingPolicy resultBiasingPolicy) {
+    public GsaQuery setRestulBiasingPolicy(ResultBiasingPolicy resultBiasingPolicy) {
         if (resultBiasingPolicy == ResultBiasingPolicy.CUSTOM)
             throw new IllegalArgumentException("Unable to specify custom, use setCustomResultBiasing(String) instead.");
         this.entsp_enum = resultBiasingPolicy;
         return this;
     }
 
-    public Query setCustomResultBiasing(String polictyName) {
+    public GsaQuery setCustomResultBiasing(String polictyName) {
         this.entsp = polictyName;
         this.entsp_enum = ResultBiasingPolicy.CUSTOM;
         return this;
     }
 
-    public Query setExcludeApps(boolean excludeApps) {
+    public GsaQuery setExcludeApps(boolean excludeApps) {
         this.exclude_apps = excludeApps;
         return this;
     }
 
-    public Query setGsaRequestID(String gsaRequestID) {
+    public GsaQuery setGsaRequestID(String gsaRequestID) {
         this.gsaRequestID = gsaRequestID;
         return this;
     }
 
-    public Query setResultCount(int num) {
+    public GsaQuery setResultCount(int num) {
         this.num = num;
         return this;
     }
 
-    public Query setStartOffset(int num) {
+    public GsaQuery setStartOffset(int num) {
         this.start = num;
         return this;
     }
 
-    public Query setKeyMatchCount(int num) {
+    public GsaQuery setKeyMatchCount(int num) {
         if (num < 0 || num > 50)
             throw new IllegalArgumentException("KeyMatch count must be between the values of 0 and 50.");
         this.numgm = num;
         return this;
     }
 
-    public Query setReturnTitleLength(int num) {
+    public GsaQuery setReturnTitleLength(int num) {
         this.tlen = num;
         return this;
     }
 
-    public Query reloadProxy() {
+    public GsaQuery reloadProxy() {
         this.proxyreload = 1;
         return this;
     }
 
-    public Query enableProxyStylesheet(boolean enable) {
+    public GsaQuery enableProxyStylesheet(boolean enable) {
         this.enableProxyStylesheet = enable;
         this.output = enable ? OutputFormat.XML_NO_DTD : OutputFormat.XML;
         return this;
     }
 
-    public Query enableAccurateResultCount(boolean enable) {
+    public GsaQuery enableAccurateResultCount(boolean enable) {
         this.enableAccurateResultCount = enable;
         return this;
     }
 
-    public Query enableSecureEstimates(boolean enable) {
+    public GsaQuery enableSecureEstimates(boolean enable) {
         this.enableSecureEstiamtes = enable;
         return this;
     }
 
-    public Query setWildcardExpansionLimit(int num) {
+    public GsaQuery setWildcardExpansionLimit(int num) {
         if (num < 0 || num > 1000)
             throw new IllegalArgumentException("Wildcard expansion limit must be between the values of 0 and 1000.");
         this.wc = num;
         return this;
     }
 
-    public Query requireWildcardPrefix(boolean enable) {
+    public GsaQuery requireWildcardPrefix(boolean enable) {
         this.wc_mc = !enable;
         return this;
+    }
+
+    public GsaQuery setGetFields(String... fields) {
+        this.getfields = fields;
+        return this;
+    }
+
+    public GsaQuery setClient(String client) {
+        this.client = client;
+        return this;
+    }
+
+    public GsaQuery setSite(String site) {
+        this.site = site;
+        return this;
+    }
+
+    public GsaQuery setPartialFields(String partialFields) {
+        this.partialfields = partialFields;
+        return this;
+    }
+
+    public GsaQuery setFilter(ResultFiltering filter) {
+        this.filter = filter;
+        return this;
+    }
+
+    public String toString() {
+        List<String> queryParts = new ArrayList<>();
+        queryParts.add("q=" + (query == null ? "" : query));
+        queryParts.add("site=" + site);
+        if (frontend != null)
+            queryParts.add("frontend=" + frontend);
+        queryParts.add("client=" + client);
+        switch (access) {
+            case ALL:
+                queryParts.add("access=a");
+                break;
+            case PUBLIC_ONLY:
+                queryParts.add("access=p");
+                break;
+            case SECURE_ONLY:
+                queryParts.add("access=s");
+                break;
+        }
+        switch (output) {
+            case XML:
+                queryParts.add("output=xml");
+                break;
+            case XML_NO_DTD:
+                queryParts.add("output=xml_no_dtd");
+                break;
+        }
+        switch (filter) {
+            case DISABLED:
+                queryParts.add("filter=0");
+                break;
+            case DIRECTORY_FILTERING:
+                queryParts.add("filter=s");
+                break;
+            case SNIPPET_AND_DIRECTORY_FILTERING:
+                queryParts.add("filter=1");
+                break;
+            case SNIPPET_FILTERING:
+                queryParts.add("filter=p");
+                break;
+        }
+
+        queryParts.add("oe=" + oe);
+        queryParts.add("ie=" + ie);
+        if (getfields != null)
+            queryParts.add("getfields=" + String.join(",", getfields));
+        if (partialfields != null)
+            queryParts.add("partialfields=" + partialfields);
+        if (requiredfields != null)
+            queryParts.add("partialfields=" + requiredfields);
+
+        return "?" + String.join("&", queryParts);
     }
 }

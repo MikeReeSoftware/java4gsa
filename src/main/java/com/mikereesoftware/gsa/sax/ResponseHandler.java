@@ -40,6 +40,8 @@ public class ResponseHandler extends DefaultHandler {
             } else if (qName.equals("MT")) {
                 setParams(attributes);
                 current.addMetadata(params[0], params[1]);
+            } else {
+                pendingKey = qName;
             }
         }
     }

@@ -2,27 +2,28 @@ package com.mikereesoftware.gsa.builders;
 
 import com.mikereesoftware.gsa.response.Response;
 import com.mikereesoftware.gsa.sax.ResponseHandler;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 
 /**
  * Created by mike on 9/1/15.
  */
 public class ResponseBuilder {
     public static Response Parse(InputStream is) {
-        SAXParserFactory factory = SAXParserFactory.newInstance();
         try {
-            SAXParser saxParser = factory.newSAXParser();
+            XMLReader reader = XMLReaderFactory.createXMLReader();
+            // Remove DTD Requirement
+            reader.setEntityResolver((publicId, systemId) -> new InputSource(new StringReader("")));
             ResponseHandler handler = new ResponseHandler();
-            saxParser.parse(is, handler);
+            reader.setContentHandler(handler);
+            reader.parse(new InputSource(is));
             return handler.getResponse();
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
         } catch (SAXException e) {
             e.printStackTrace();
         } catch (IOException e) {

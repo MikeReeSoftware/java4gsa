@@ -11,14 +11,10 @@ import java.util.List;
  */
 public class Response implements ISaxable {
     private ResponseHeader responseHeader = new ResponseHeader();
-    private List<ResponseDocument> documents = new ArrayList<ResponseDocument>();
-
-    public void parse(String gsaResponseString) {
-
-    }
+    private List<ResponseDocument> documents = new ArrayList<>();
 
     public void process(String key, String data) {
-
+        throw new IllegalArgumentException("This method should not be able to be called");
     }
 
     public void addMetadata(String key, String value) {
